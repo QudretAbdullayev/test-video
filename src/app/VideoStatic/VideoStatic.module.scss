@@ -10,6 +10,9 @@
         object-fit: cover;
         width: 100%;
         height: 100%;
-        
+
+    }
+    &::-webkit-media-controls {
+        display:none !important;
     }
 }
