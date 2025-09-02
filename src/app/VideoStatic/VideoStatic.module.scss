@@ -12,21 +12,16 @@
     left: 0;
     inset: 0;
     object-fit: cover;
-    cursor: pointer;
+    outline: none;
+    border: none;
     
-    /* Webkit media controls gizle */
+    /* Sadece media kontrollerini gizle, video kendisini değil */
     &::-webkit-media-controls {
         display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        -webkit-appearance: none;
     }
     
-    &::-webkit-media-controls-start-playback-button {
+    &::-webkit-media-controls-enclosure {
         display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        -webkit-appearance: none;
     }
     
     &::-webkit-media-controls-panel {
@@ -37,23 +32,35 @@
         display: none !important;
     }
     
-    &::-webkit-media-controls-start-playbook-button {
+    &::-webkit-media-controls-start-playback-button {
         display: none !important;
     }
     
-    /* iOS'ta video kontrollerini tamamen kaldır */
-    &::-webkit-media-controls-enclosure {
-        display: none !important;
-    }
-    
-    /* iOS'ta play button indicator'ını gizle */
     &::-webkit-media-controls-overlay-play-button {
         display: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
     }
     
-    &::-webkit-media-controls-start-playback-button {
+    &::-webkit-media-controls-timeline {
+        display: none !important;
+    }
+    
+    &::-webkit-media-controls-current-time-display {
+        display: none !important;
+    }
+    
+    &::-webkit-media-controls-time-remaining-display {
+        display: none !important;
+    }
+    
+    &::-webkit-media-controls-mute-button {
+        display: none !important;
+    }
+    
+    &::-webkit-media-controls-volume-slider {
+        display: none !important;
+    }
+    
+    &::-webkit-media-controls-fullscreen-button {
         display: none !important;
     }
 }
@@ -64,9 +71,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: 2;
     cursor: pointer;
     background: transparent;
+    pointer-events: all; /* Overlay tıklanabilir */
 }
 
 .playButtonContainer {
@@ -113,31 +121,10 @@
     }
 }
 
-// iOS özel düzeltmeleri
+// iOS özel düzeltmeleri - sadece kontrolcüler için
 @supports (-webkit-appearance: none) {
-    .video {
-        /* iOS Safari'de ek kontrolcü gizleme */
-        &::-webkit-media-controls-timeline {
-            display: none !important;
-        }
-        
-        &::-webkit-media-controls-current-time-display {
-            display: none !important;
-        }
-        
-        &::-webkit-media-controls-time-remaining-display {
-            display: none !important;
-        }
-        
-        &::-webkit-media-controls-mute-button {
-            display: none !important;
-        }
-        
-        &::-webkit-media-controls-volume-slider {
-            display: none !important;
-        }
-        
-        &::-webkit-media-controls-fullscreen-button {
+    .video {        
+        &::-webkit-media-controls-overlay-enclosure {
             display: none !important;
         }
     }

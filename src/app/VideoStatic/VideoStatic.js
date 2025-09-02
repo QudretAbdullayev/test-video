@@ -120,7 +120,7 @@ const VideoStatic = ({ src, ...props }) => {
                 playsInline
                 preload="metadata"
                 className={styles.video}
-                onClick={handleVideoClick}
+                onContextMenu={(e) => e.preventDefault()} // Sağ tık menüsünü engelle
             >
                 <source src={src} type="video/mp4" />
                 Your browser does not support the video tag.
@@ -134,7 +134,7 @@ const VideoStatic = ({ src, ...props }) => {
                 <div className={styles.playButtonContainer} onClick={handlePlayClick}>
                     <div className={styles.playButton}>
                         <svg viewBox="0 0 24 24" className={styles.playIcon}>
-                            <path d="M8 5v14l11-7z" fill="currentColor"/>
+
                         </svg>
                     </div>
                 </div>
