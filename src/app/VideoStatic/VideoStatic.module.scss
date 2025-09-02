@@ -12,7 +12,7 @@
     left: 0;
     inset: 0;
     object-fit: cover;
-    pointer-events: none; /* Click eventlerini engelle */
+    cursor: pointer;
     
     /* Webkit media controls gizle */
     &::-webkit-media-controls {
@@ -45,6 +45,17 @@
     &::-webkit-media-controls-enclosure {
         display: none !important;
     }
+    
+    /* iOS'ta play button indicator'ını gizle */
+    &::-webkit-media-controls-overlay-play-button {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+    
+    &::-webkit-media-controls-start-playback-button {
+        display: none !important;
+    }
 }
 
 .overlay {
@@ -54,6 +65,80 @@
     width: 100%;
     height: 100%;
     z-index: 1;
-    pointer-events: none;
+    cursor: pointer;
     background: transparent;
+}
+
+.playButtonContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+.playButton {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    
+    @media (max-width: 768px) {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+.playIcon {
+    width: 24px;
+    height: 24px;
+    color: white;
+    margin-left: 2px; // Play icon'unu ortalamak için
+    
+    @media (max-width: 768px) {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+// iOS özel düzeltmeleri
+@supports (-webkit-appearance: none) {
+    .video {
+        /* iOS Safari'de ek kontrolcü gizleme */
+        &::-webkit-media-controls-timeline {
+            display: none !important;
+        }
+        
+        &::-webkit-media-controls-current-time-display {
+            display: none !important;
+        }
+        
+        &::-webkit-media-controls-time-remaining-display {
+            display: none !important;
+        }
+        
+        &::-webkit-media-controls-mute-button {
+            display: none !important;
+        }
+        
+        &::-webkit-media-controls-volume-slider {
+            display: none !important;
+        }
+        
+        &::-webkit-media-controls-fullscreen-button {
+            display: none !important;
+        }
+    }
 }

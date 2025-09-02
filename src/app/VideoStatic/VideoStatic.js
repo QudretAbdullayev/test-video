@@ -1,78 +1,112 @@
 "use client"
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './VideoStatic.module.scss';
 
 const VideoStatic = ({ src, ...props }) => {
     const videoRef = useRef(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [showPlayButton, setShowPlayButton] = useState(false);
+    const [isLowPowerMode, setIsLowPowerMode] = useState(false);
 
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
-        // iOS low battery mode detection ve play button gizleme
-        const hideControls = () => {
-            // Inline stil ile zorla gizle
-            const style = document.createElement('style');
-            style.textContent = `
-                video::-webkit-media-controls {
-                    display: none !important;
-                    opacity: 0 !important;
-                    visibility: hidden !important;
-                }
-                video::-webkit-media-controls-start-playbook-button {
-                    display: none !important;
-                    opacity: 0 !important;
-                    visibility: hidden !important;
-                }
-                video::-webkit-media-controls-panel {
-                    display: none !important;
-                }
-                video::-webkit-media-controls-play-button {
-                    display: none !important;
-                }
-                video::-webkit-media-controls-start-playback-button {
-                    display: none !important;
-                }
-            `;
-            
-            if (!document.head.querySelector('#video-controls-style')) {
-                style.id = 'video-controls-style';
-                document.head.appendChild(style);
-            }
-        };
-
-        // Video yüklendiğinde kontrolleri gizle
-        const handleLoadedData = () => {
-            hideControls();
-            
-            // Video overlay ile play butonunu maskele
-            video.style.pointerEvents = 'none';
-            
-            // Otomatik oynatmaya zorla (mümkünse)
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    // Oynatılamadı, ama kontroller hala gizli kalacak
+        // iOS düşük güç modu tespiti
+        const detectLowPowerMode = () => {
+            // iOS'ta düşük güç modunda video otomatik başlamaz
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS) {
+                // Video yüklenmeyi bekle
+                video.addEventListener('loadstart', () => {
+                    setTimeout(() => {
+                        if (video.paused && video.readyState > 0) {
+                            setIsLowPowerMode(true);
+                            setShowPlayButton(true);
+                        }
+                    }, 500);
                 });
             }
         };
 
-        // Event listeners
-        video.addEventListener('loadeddata', handleLoadedData);
-        video.addEventListener('canplay', hideControls);
-        video.addEventListener('loadstart', hideControls);
-        
-        // İlk yüklenmede de çalıştır
-        if (video.readyState >= 2) {
-            handleLoadedData();
-        }
-
-        return () => {
-            video.removeEventListener('loadeddata', handleLoadedData);
-            video.removeEventListener('canplay', hideControls);
-            video.removeEventListener('loadstart', hideControls);
+        // Video eventi dinleyicileri
+        const handlePlay = () => {
+            setIsPlaying(true);
+            setShowPlayButton(false);
         };
-    }, [src]);
+
+        const handlePause = () => {
+            setIsPlaying(false);
+            // iOS'ta otomatik pause durumunda play button göster
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS && !video.ended) {
+                setShowPlayButton(true);
+            }
+        };
+
+        const handleStalled = () => {
+            // Video takıldığında
+            setShowPlayButton(true);
+        };
+
+        const handleWaiting = () => {
+            // Video bekliyor durumunda
+            setShowPlayButton(true);
+        };
+
+        const handleCanPlay = () => {
+            // Video oynatılmaya hazır
+            if (video.paused) {
+                // iOS'ta otomatik play denemesi
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // Otomatik play başarısız, kullanıcı etkileşimi gerekli
+                        setShowPlayButton(true);
+                    });
+                }
+            }
+        };
+
+        // Event listener'ları ekle
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+        video.addEventListener('stalled', handleStalled);
+        video.addEventListener('waiting', handleWaiting);
+        video.addEventListener('canplay', handleCanPlay);
+
+        detectLowPowerMode();
+
+        // Cleanup
+        return () => {
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
+            video.removeEventListener('stalled', handleStalled);
+            video.removeEventListener('waiting', handleWaiting);
+            video.removeEventListener('canplay', handleCanPlay);
+        };
+    }, []);
+
+    // Play button tıklama handler'ı
+    const handlePlayClick = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.play().then(() => {
+                setIsPlaying(true);
+                setShowPlayButton(false);
+            }).catch((error) => {
+                console.error('Video play failed:', error);
+            });
+        }
+    };
+
+    // Tam ekran tıklama handler'ı (gizli overlay için)
+    const handleVideoClick = () => {
+        const video = videoRef.current;
+        if (video && video.paused) {
+            handlePlayClick();
+        }
+    };
 
     return (
         <div className={styles.videoContainer}>
@@ -83,18 +117,28 @@ const VideoStatic = ({ src, ...props }) => {
                 autoPlay={true}
                 loop
                 muted
-                playsInline={true} // iOS için önemli
-                webkit-playsinline="true" // Eski iOS versiyonları için
-                type="video/mp4"
+                playsInline
+                preload="metadata"
                 className={styles.video}
-                disablePictureInPicture
-                disableRemotePlaybook
+                onClick={handleVideoClick}
             >
                 <source src={src} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
-            {/* Overlay div ile play butonunu tamamen maskele */}
-            <div className={styles.overlay}></div>
+
+            {/* iOS düşük güç modu için overlay */}
+            <div className={styles.overlay} onClick={handleVideoClick} />
+
+            {/* iOS play button */}
+            {showPlayButton && (
+                <div className={styles.playButtonContainer} onClick={handlePlayClick}>
+                    <div className={styles.playButton}>
+                        <svg viewBox="0 0 24 24" className={styles.playIcon}>
+                            <path d="M8 5v14l11-7z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
