@@ -4,7 +4,7 @@ import VideoStatic from "./VideoStatic/VideoStatic";
 export default function Home() {
   return (
       <main className={styles.main}>
-        <VideoStatic src="/videos/background.mp4" alt="video" />
+        <VideoStatic src="/videos/background.mp4" alt="video" poster="/videos/background.png"/>
       </main>
   );
 }
